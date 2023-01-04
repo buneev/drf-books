@@ -1,0 +1,16 @@
+DEBUG=1
+ALLOWED_HOSTS=localhost 127.0.0.1 0.0.0.0 10.222.255.5
+
+# for docker:
+# DB_HOST=db
+# for local:
+DB_HOST=0.0.0.0
+DB_PORT=5432
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_ENGINE=django.db.backends.postgresql_psycopg2
+
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
