@@ -19,7 +19,7 @@ from rest_framework.routers import DefaultRouter
 from store.views import *
 
 router = DefaultRouter()
-router.register('book', BookView)
+router.register('books', BookView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

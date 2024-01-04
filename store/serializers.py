@@ -1,12 +1,8 @@
-from django.db.transaction import atomic
-from rest_framework import serializers
-from .models import *
-from datetime import datetime, timezone
-# from .enums import *
+from rest_framework.serializers import ModelSerializer
 
+from store.models import Book
 
-class BookSerializer(serializers.ModelSerializer):
+class BookSerializer(ModelSerializer):
     class Meta:
         model = Book
         fields = '__all__'
-

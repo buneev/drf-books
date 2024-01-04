@@ -1,0 +1,19 @@
+
+# Senior Pomidor Developer
+https://www.youtube.com/playlist?list=PLyaCd9XYVI9DiMvYl-8OdZk7ktc6NQWrb
+
+# postgresql локальный
+sudo service postgresql start
+
+# дать права пользователю на создание бд (для запуска тестов)
+sudo -u postgres psql
+ALTER USER books CREATEDB;
+
+# запуск тестов
+python3 manage.py test .
+python3 manage.py test store.tests.test_api
+
+# superusers
+books / books
+admin / 123456
+
