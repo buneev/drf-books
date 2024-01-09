@@ -3,6 +3,8 @@
 
 
 cred
+.env.dev
+.DS_Store
   
 # Stage local config.
 configs.yml

@@ -13,6 +13,7 @@ class BookApiTestCase(APITestCase):
         book1 = Book.objects.create(name='Test book1', price='353.21')
         book2 = Book.objects.create(name='Test book2', price='763.75')
 
+        # book-list - это метод list у класса ModelViewSet
         url = reverse('book-list')
         # url = reverse('book-detail')
         response = self.client.get(url)

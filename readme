@@ -17,3 +17,10 @@ python3 manage.py test store.tests.test_api
 books / books
 admin / 123456
 
+# shell - пример, доступа через my_book
+python3 manage.py shell
+>>> from django.contrib.auth.models import User
+>>> user = User.objects.get(id=2)
+>>> user.my_books.all()
+>>> user.books.all()
+

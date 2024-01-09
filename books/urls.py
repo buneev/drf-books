@@ -19,11 +19,14 @@ from rest_framework.routers import DefaultRouter
 from store.views import *
 
 router = DefaultRouter()
-router.register('books', BookView)
+router.register('book', BookView)
+router.register('user_book_relation', UserBookRelationView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    # path('api/c/', CView.as_view()),
-    # path('api/c/<int:pk>/', SingleCView.as_view()),
+    path('random-func/', get_random_number, name='random-number'),
+    path('random-apiview/min/<int:min>/max/<int:max>/', RandomNumberView.as_view(), name='random-number-min-max'),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
+
