@@ -1,10 +1,9 @@
 from random import randint
-
-from django.db.models import Count, Case, When, Avg
+from django.db.models import Count, Case, When, Avg, Max, Min, Sum
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
@@ -20,6 +19,7 @@ from store.serializers import *
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.AllowAny])
 def get_random_number(request):
+    """Представление на основе функции."""
 
     if request.method == 'GET':
         number = randint(1, 100)
@@ -28,7 +28,6 @@ def get_random_number(request):
             request.data.get('min', 1),
             request.data.get('max', 100)
         )
-
     resp = {
         'random_number': number,
         'info': 'Представления в DRF могут быть созданы как на основе классов, '
@@ -44,10 +43,9 @@ class RandomNumberView(APIView):
         resp = {
             'random_number': randint(min, max),
             'url': 'https://dzen.ru/a/ZUAAioxUhgegJTeo?share_to=link',
-            'info': "Когда имеет смысл использовать APIView класс? "
-                    "Как правило, когда конечная точка вашего API не "
-                    "выполняет операции CRUD (создание, чтение, "
-                    "обновление, удаление) над моделями баз данных.",
+            'info': "Как правило, имеет смысл использовать APIView класс,"
+                    "когда конечная точка вашего API не выполняет операции "
+                    "CRUD над моделями баз данных.",
         }
         return Response(resp)
 
@@ -57,6 +55,12 @@ class RandomNumberView(APIView):
 
 
 class BookView(ModelViewSet):
+    """
+    @price_info - получение sum/avg/min/max цены среди всех книг магазина;
+    @likes_cnt - количество всех лайков;
+    """
+
+    # для каждой книги считаем кол-во лайков и рейтинг
     queryset = Book.objects.all().annotate(
         annotated_likes_count=Count(Case(When(userbookrelation__like=True, then=1))),
         rating=Avg('userbookrelation__rate')
@@ -72,6 +76,53 @@ class BookView(ModelViewSet):
     def perform_create(self, serializer):
         serializer.validated_data['owner'] = self.request.user
         serializer.save()
+
+    # TODO://
+    # @action(detail=True, methods=['put'])
+    # def upload_file(self, request: drf_request, pk: int):
+    #     """Загрузка файлов."""
+
+    @action(detail=False, methods=['get'])
+    def price_info(self, request):
+        """
+        Aggregate.
+        Получение sum/avg/min/max цены среди всех книг магазина
+        """
+
+        # bad example:
+        # total_price = sum(book.price for book in Book.objects.all())
+        # ORM честно запросит все книги из базы и поместит данные каждой
+        # книги в объект класса Book. А затем в коде потребуется только цена — это
+        # уже выглядит как лишняя работа! Django ORM умеет запрашивать только часть данных.
+
+        # good example
+        price_info = Book.objects.aggregate(
+            sum_books_price=Sum('price'), avg_books_price=Avg('price'),
+            min_price=Min('price'), max_price=Max('price')
+        )
+
+        # Как можно заметить, каждый запрос на агрегацию возвращает
+        # не сами книги, а только итоговый результат.
+        return Response(price_info)
+
+    @action(detail=False, methods=['get', 'post'])
+    def likes_cnt(self, request):
+        """
+        Annotate.
+        Каждый объект будет иметь дополнительные атрибуты. Каждый атрибут будет
+        хранить результат соответствующей агрегации относительно текущего объекта.
+        .aggregate(Count('postcomment')) - подсчитает количество всех комментариев, а
+        .annotate(Count('postcomment')) - даст количество комментариев к каждому посту.
+        https://ru.hexlet.io/courses/python-django-orm/lessons/annotation/theory_unit
+        """
+
+        # =)))
+        data = Book.objects.annotate(
+            likes_count=Count(Case(When(userbookrelation__like=True, then=1))),
+        ).aggregate(likes_count_by_all_book_hard=Sum('likes_count'))
+
+        data['likes_count_by_all_book_eazy'] = UserBookRelation.objects.filter(like=True).count()
+        return Response(data)
 
 
 class UserBookRelationView(

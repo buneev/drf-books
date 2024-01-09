@@ -41,6 +41,10 @@ class Book(models.Model):
     def __str__(self):
         return f'Id {self.id}: {self.name}'
 
+    class Meta:
+        verbose_name = 'Книга'
+        ordering = ['-id']
+
 
 class UserBookRelation(models.Model):
     # если пользователя удалят, удаляем лайки пользователя

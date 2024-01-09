@@ -3,10 +3,17 @@ from rest_framework.serializers import ModelSerializer
 
 from store.models import *
 
+"""
+Сериализаторы в DRF отвечают за следующее:
+1. Преобразование экземпляров модели и наборов запросов в собственные типы данных Python.
+2. Проверка данных, предоставленных пользователем.
+3. Создание и обновление экземпляров моделей баз данны
+"""
+
 
 class BookSerializer(ModelSerializer):
-    # данные поля не хранятся в бд, они будут вычисленны 'налету' через Annotate
     likes_count = serializers.SerializerMethodField()
+    # данные поля не хранятся в бд, они будут вычисленны 'налету' через Annotate
     annotated_likes_count = serializers.IntegerField(read_only=True)
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
 
