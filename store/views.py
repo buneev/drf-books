@@ -1,8 +1,8 @@
 from random import randint
-from django.db.models import Count, Case, When, Avg, Max, Min, Sum
+from django.db.models import Count, Case, When, Avg, Max, Min, Sum, Q
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, permissions
+from rest_framework import mixins, permissions, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -39,7 +39,9 @@ def get_random_number(request):
 class RandomNumberView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, min, max):
+    def get(self, request, min: int, max: int):
+        """Пример передачи параметров."""
+
         resp = {
             'random_number': randint(min, max),
             'url': 'https://dzen.ru/a/ZUAAioxUhgegJTeo?share_to=link',
@@ -54,10 +56,33 @@ class RandomNumberView(APIView):
         return Response({'random_number': number})
 
 
+class UserRegistrationView(APIView):
+    """
+    body example:
+    {
+        "username": "admin",
+        "password": ""
+        -- "phone": "1234"
+    }
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        serializer = UserSerializers(instance=request.user)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UserSerializers(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save() # вызывает метод create в сериализаторе
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class BookView(ModelViewSet):
     """
     @price_info - получение sum/avg/min/max цены среди всех книг магазина;
     @likes_cnt - количество всех лайков;
+    @q - пример работы ORM-команды с классом Q;
     """
 
     # для каждой книги считаем кол-во лайков и рейтинг
@@ -123,6 +148,26 @@ class BookView(ModelViewSet):
 
         data['likes_count_by_all_book_eazy'] = UserBookRelation.objects.filter(like=True).count()
         return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def q(self, request):
+        """
+        Q. Если в условии нужно использовать логическое ИЛИ, а также НЕ,
+        то вместо перечисления критериев отбора через запятую, следует
+        использовать специальный класс Q.
+        https://proproprogs.ru/django4/django4-orm-komandy-s-klassom-q
+        https://metanit.com/python/django/5.13.php # gt, gte, lte, lt
+        """
+
+        queryset = Book.objects.filter(
+            Q(id__in=[1, 2]) | Q(price__gt=400), name__icontains="Boo"
+        )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class UserBookRelationView(
