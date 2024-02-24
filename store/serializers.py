@@ -19,19 +19,30 @@ def phone_validate_func(phone_number: str):
             'Длина телефона должна быть >= 6 симмволов'
         )
 
+class BookReaderSerialiser(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name')
+
 
 class BookSerializer(ModelSerializer):
-    # This is a read-only field
+    # this is a read-only field
     likes_count = serializers.SerializerMethodField()
-    # данные поля не хранятся в бд, они будут вычислены 'налету' через Annotate
+    # поля annotated_likes_count и rating не хранятся в бд, они будут вычислены 'налету' через Annotate
     annotated_likes_count = serializers.IntegerField(read_only=True)
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+    # с помощью source указываем откуда получить имя, p.s.: owner = models.ForeignKey()
+    owner_name = serializers.CharField(source='owner.username', default='', read_only=True)
+    readers = BookReaderSerialiser(many=True)
+    # если хотим изменить имя поля
+    # readers_abc = BookReaderSerialiser(many=True, source='readers')
 
     class Meta:
         model = Book
         fields = (
             'id', 'name', 'description', 'price', 'author_name',
-            'owner', 'likes_count', 'annotated_likes_count', 'rating'
+            'owner', 'likes_count', 'annotated_likes_count', 'rating',
+            'owner_name', 'readers',
         )
 
         extra_kwargs = {
@@ -74,7 +85,7 @@ class UserSerializers(serializers.Serializer):
         return value
 
     def validate(self, attrs):
-        """Проверить несколько полей одновременно!"""
+        """Проверить несколько полей одновременно! """
 
         email = attrs.get('email')
         username = attrs.get('username')
@@ -82,5 +93,6 @@ class UserSerializers(serializers.Serializer):
 
     def create(self, validated_data):
         """Этот метод будет запущен, если проверка прошла успешно."""
+
         return User.objects.create(**validated_data)
 

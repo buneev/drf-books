@@ -89,7 +89,7 @@ class BookView(ModelViewSet):
     queryset = Book.objects.all().annotate(
         annotated_likes_count=Count(Case(When(userbookrelation__like=True, then=1))),
         rating=Avg('userbookrelation__rate')
-    )
+    ).select_related('owner').prefetch_related('readers').order_by('id')
     serializer_class = BookSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = BookFilter
@@ -179,10 +179,15 @@ class UserBookRelationView(
     permission_classes = [IsAuthenticated]
     lookup_field = 'book'
 
-    # lookup_field - тут основная идея в том,
+    # lookup_field - в данном примере, основная идея в том,
     # чтобы менять записи в базе не по id связи (книг и действий пользователей),
     # а по id книги и пользователя; 23 в запросе /api/user_book_relation/23/ это
-    # не id связи (объекта) как обычно, 23 - это id книги
+    # не id связи (объекта) как обычно, 23 - это id книги.
+
+    # lookup_field - иногда нам может потребоваться выполнить поиск экземпляра
+    # по полю, отличному от pk. Для этого мы должны установить lookup_field
+    # свойство в нашем классе view. Также потребуется изменить имя параметра
+    # при регистрации маршрута.
 
     def get_object(self):
         # put/patch запрос

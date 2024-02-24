@@ -3,6 +3,7 @@ from .models import Article
 
 
 class ArticleSerializer(serializers.Serializer):
+
     id = serializers.IntegerField(read_only=True)
     title = serializers.CharField(max_length=120)
     description = serializers.CharField()
@@ -19,4 +20,15 @@ class ArticleSerializer(serializers.Serializer):
         instance.author_id = validated_data.get('author_id', instance.author_id)
         instance.save()
         return instance
+
+
+class ArticleSerializer2(serializers.ModelSerializer):
+    """
+    Используя ModelSerializer, мы сразу получаем методы
+    create и update. А так же набор валидаторов по умолчанию.
+    """
+
+    class Meta:
+        model = Article
+        fields = ('id', 'title', 'description', 'body', 'author_id')
 

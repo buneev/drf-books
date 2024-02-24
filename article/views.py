@@ -1,8 +1,17 @@
-from rest_framework.generics import get_object_or_404
+from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404, GenericAPIView, CreateAPIView, ListAPIView, ListCreateAPIView, \
+    RetrieveAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Article
-from .serializers import ArticleSerializer
+from .models import Article, Author
+from .serializers import ArticleSerializer, ArticleSerializer2
+
+"""
+https://webdevblog.ru/sozdanie-django-api-ispolzuya-django-rest-framework-apiview/
+https://webdevblog.ru/sozdanie-django-api-ispolzuya-djangorestframework-chast-2/
+https://webdevblog.ru/sozdanie-django-api-ispolzuya-djangorestframework-chast-3/
+"""
 
 
 class ArticleView1(APIView):
@@ -59,4 +68,53 @@ class ArticleView1(APIView):
         article.delete()
         return Response('deleted', status=204)
 
+
+class ArticleView2(ListModelMixin, CreateModelMixin, GenericAPIView):
+    """
+    GenericAPIView отличается от APIView, тем что GenericAPIView
+    расширяет возможности APIView, добавляя в него часто используемые
+    методы list и detail. Сл-но в коде выше, этих двух моих костылей
+    быть не должно, в статье их и нет.
+    """
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer2
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        author = get_object_or_404(Author, id=self.request.data.get('author_id'))
+        return serializer.save(author=author)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class ArticleView3(ListAPIView, CreateAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer2
+
+    def perform_create(self, serializer):
+        author = get_object_or_404(Author, id=self.request.data.get('author_id'))
+        return serializer.save(author=author)
+
+
+class ArticleView4(ListCreateAPIView):
+    """Вроде бы идеальная комбинация, но без множественного создания."""
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer2
+
+    def perform_create(self, serializer):
+        author = get_object_or_404(Author, id=self.request.data.get('author_id'))
+        return serializer.save(author=author)
+
+class SingleArticleView(RetrieveUpdateDestroyAPIView):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer2
+
+
+class ArticleViewSet(viewsets.ModelViewSet):
+    """То же самое что и выше, + на скриншоте api.png"""
+    serializer_class = ArticleSerializer2
+    queryset = Article.objects.all()
 

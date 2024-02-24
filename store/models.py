@@ -24,18 +24,20 @@ class Book(models.Model):
         User,
         on_delete=models.SET_NULL,
         null=True,
+        related_name='my_books', # default related_name: 'book_set'
+        # ниже идет пример использования related_name='my_books',
         # user = User.objects.get(id=2)
         # user.my_books.all()
-        related_name='my_books', # default related_name: 'book_set'
     )
     readers = models.ManyToManyField(
         User,
         # связь ManyToMany реализовали через кастомную таблицу UserBookRelation, для добавления своих полей,
         # без явного создания таблицы UserBookRelation, она была бы создана, но без доп. полей
         through='UserBookRelation',
+        related_name='books', # default related_name: 'book_set'
+        # ниже идет пример использования related_name='books',
         # user = User.objects.get(id=2)
         # user.books.all()
-        related_name='books', # default related_name: 'book_set'
     )
 
     def __str__(self):
