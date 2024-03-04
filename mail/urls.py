@@ -8,5 +8,6 @@ app_name = "article"
 urlpatterns = [
     path('send/', SendMailView.as_view()),
     path('sleep/', SleepView.as_view()),
+    path('upload_file/', async_upload_file_job, name='async_upload_file_job')
 ]
 

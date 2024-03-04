@@ -45,4 +45,7 @@ python3 manage.py shell
 Запуск flower http://0.0.0.0:5555:
 > celery -A books flower 
 
+## s3 timeweb
+
+https://timeweb.cloud/my/storage
 

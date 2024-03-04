@@ -2,6 +2,7 @@ from random import randint
 from time import sleep
 from django.core.mail import send_mail
 from celery import shared_task
+from .s3client import *
 
 
 @shared_task()
@@ -22,4 +23,9 @@ def sleep_task():
     sleep_sec = randint(20, 40)
     sleep(sleep_sec)
     return {'sleep_sec': sleep_sec}
+
+@shared_task()
+def upload_file_task(local_path, path):
+    upload_file_to_s3(local_path, path)
+    return 'success'
 
