@@ -33,8 +33,8 @@ python3 manage.py shell
 
 ## Celery
 
-Запуск celery worker, который выполняет 2 задачи одновременно: 
->  python -m celery -A books worker -c 2 -l info
+Запуск celery worker, который выполняет 4 задачи одновременно (default 8): 
+>  python -m celery -A books worker -c 4 -l info
 
 Получение текущего состояния воркера
 > python3 -m celery -A books inspect active
