@@ -30,6 +30,8 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/', include('article.urls')),
 
+    path('mail/', include('mail.urls')),
+
     path('random/', get_random_number, name='random-number'),
     path('random/min/<int:min>/max/<int:max>/', RandomNumberView.as_view(), name='random-number-min-max'),
 
