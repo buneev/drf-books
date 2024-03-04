@@ -141,11 +141,11 @@ class BookView(ModelViewSet):
         https://ru.hexlet.io/courses/python-django-orm/lessons/annotation/theory_unit
         """
 
-        # =)))
         data = Book.objects.annotate(
             likes_count=Count(Case(When(userbookrelation__like=True, then=1))),
         ).aggregate(likes_count_by_all_book_hard=Sum('likes_count'))
 
+        # то же самое что и выше
         data['likes_count_by_all_book_eazy'] = UserBookRelation.objects.filter(like=True).count()
         return Response(data)
 

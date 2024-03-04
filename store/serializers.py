@@ -26,8 +26,10 @@ class BookReaderSerialiser(serializers.ModelSerializer):
 
 
 class BookSerializer(ModelSerializer):
+
     # this is a read-only field
-    likes_count = serializers.SerializerMethodField()
+    # likes_count = serializers.SerializerMethodField()
+
     # поля annotated_likes_count и rating не хранятся в бд, они будут вычислены 'налету' через Annotate
     annotated_likes_count = serializers.IntegerField(read_only=True)
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
@@ -41,7 +43,8 @@ class BookSerializer(ModelSerializer):
         model = Book
         fields = (
             'id', 'name', 'description', 'price', 'author_name',
-            'owner', 'likes_count', 'annotated_likes_count', 'rating',
+            'owner', 'annotated_likes_count', 'rating',
+            # 'likes_count',
             'owner_name', 'readers',
         )
 
@@ -53,8 +56,9 @@ class BookSerializer(ModelSerializer):
             },
         }
 
-    def get_likes_count(self, instance):
-        return UserBookRelation.objects.filter(book=instance, like=True).count()
+    # def get_likes_count(self, instance):
+    #     """Делается много запросов. Есть реализация через annotate (поле annotated_likes_count)."""
+    #     return UserBookRelation.objects.filter(book=instance, like=True).count()
 
 
 class UserBookRelationSerializer(ModelSerializer):
